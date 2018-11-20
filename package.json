@@ -1,0 +1,20 @@
+{
+  "name": "sandbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^23.6.0"
+  },
+  "dependencies": {
+    "data.task": "^3.1.2",
+    "immutable": "^4.0.0-rc.12",
+    "immutable-ext": "^1.1.5"
+  }
+}
