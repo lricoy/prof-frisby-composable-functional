@@ -14,7 +14,12 @@ const Sum = x => ({
 });
 Sum.empty = () => Sum(0);
 
-console.log(Sum.empty().concat(Sum(1).concat(Sum(2))));
+test('Sum monoid concats by using addition', () =>{
+  expect(Sum(1).concat(Sum(2)).x).toEqual(3)
+})
+test('Sum monoid work with its identity', () =>{
+  expect(Sum.empty().concat(Sum(1).concat(Sum(2))).x).toEqual(3)
+})
 
 const All = x => ({
   x,
@@ -23,15 +28,25 @@ const All = x => ({
 });
 All.empty = () => All(true);
 
-console.log(All.empty().concat(All(true).concat(All(false))))
+test('All monoid should remain true only if All concats are truthy', () =>{
+  expect(All(true).concat(All(false)).x).toEqual(false)
+  expect(All(true).concat(All(true)).x).toEqual(true)
+})
+test('All monoid work with its identity', () =>{
+  expect(All.empty().concat(All(true).concat(All(false))).x).toEqual(false)
+})
 
+// Only a semigroup because it does not have a id function
 const First = x => ({
   x,
   concat: _ => First(x),
   inspect: () => `Sum(${x})`
 });
 
-console.log(First('blah').concat(First('ice cream')).concat(First('twice')))
+test('First should always keep the first item', () =>{
+  expect(First('blah').concat(First('ice cream')).concat(First('twice')).x).toEqual('blah')
+  // We don't have a identity function for First so far
+})
 
 const acct1 = Map({
   name: First("Nico"),
@@ -53,5 +68,14 @@ const sum = xs => xs.reduce((acc, x) => acc + x, 0);
 const all = xs => xs.reduce((acc, x) => acc && x, true);
 const first = xs => xs.reduce((acc, x) => acc);
 
-console.log(first([1, 2, 3]))// will give back 1
-console.log(first([]))// will blow up
+test('sum works with a empy array', () => {
+  expect(sum([])).toEqual(0);
+})
+
+test('all works with a empy array', () => {
+  expect(all([])).toEqual(true);
+})
+
+test('first to blow up with a empty array', () => {
+  expect(() => first([])).toThrowError();
+})

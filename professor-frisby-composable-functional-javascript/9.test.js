@@ -43,7 +43,9 @@ const Sum = x => ({
 });
 Sum.empty = () => Sum(0);
 
-console.log(`Sum(${Sum(2).concat(Sum(3)).x})`); // 5
+test("Sum monoid is working", () => {
+  expect(Sum(2).concat(Sum(3)).x).toEqual(5);
+});
 
 const Product = x => ({
   x,
@@ -51,7 +53,9 @@ const Product = x => ({
 });
 Product.empty = () => Product(1);
 
-console.log(`Product(${Product(2).concat(Product(5)).x})`); // 10
+test("Product monoid is working", () => {
+  expect(Product(2).concat(Product(5)).x).toEqual(10);
+});
 
 const Any = x => ({
   x,
@@ -59,8 +63,10 @@ const Any = x => ({
 });
 Any.empty = () => Any(false);
 
-console.log(`Any(${Any(true).concat(Any(false)).x})`);
-console.log(`Any(${Any(false).concat(Any(false)).x})`);
+test("Any monoid is working", () => {
+  expect(Any(true).concat(Any(false)).x).toEqual(true);
+  expect(Any(false).concat(Any(false)).x).toEqual(false);
+});
 
 const All = x => ({
   x,
@@ -68,8 +74,10 @@ const All = x => ({
 });
 All.empty = () => All(true);
 
-console.log(`All(${All(true).concat(All(true)).x})`);
-console.log(`All(${All(true).concat(All(false)).x})`);
+test("All monoid is working", () => {
+  expect(All(true).concat(All(true)).x).toEqual(true);
+  expect(All(true).concat(All(false)).x).toEqual(false);
+});
 
 const Max = x => ({
   x,
@@ -77,7 +85,10 @@ const Max = x => ({
 });
 Max.empty = () => Max(Number.MIN_SAFE_INTEGER);
 
-console.log(`Max(${Max(10).concat(Max(2)).x})`); // 10
+test("Max monoid is working", () => {
+  expect(Max(10).concat(Max(2)).x).toEqual(10);
+  expect(Max(-10).concat(Max(-2)).x).toEqual(-2);
+});
 
 const Min = x => ({
   x,
@@ -85,7 +96,9 @@ const Min = x => ({
 });
 Min.empty = () => Min(Number.MAX_SAFE_INTEGER);
 
-console.log(`Min(${Min(10).concat(Min(2)).x})`); // 2
+test("Min monoid is working", () => {
+  expect(Min(10).concat(Min(2).concat(Min(0))).x).toEqual(0);
+});
 
 const stats = List.of(
   { page: "Home", views: 40 },
@@ -99,28 +112,42 @@ const statsWithNull = List.of(
   { page: "Blog", views: null }
 );
 
-console.log(
-  "foldMap",
-  stats
-    .foldMap(x => fromNullable(x.views).map(Sum), Right(Sum(0)))
-    .fold(e => `Left(${e})`, s => `Sum(${s.x})`)
-);
+test("that foldMapping the list with immutable-ext foldMap will return the correct Sum", () => {
+  expect(
+    stats
+      .foldMap(x => fromNullable(x.views).map(Sum), Right(Sum(0)))
+      .fold(e => `Left(${e})`, s => `Sum(${s.x})`)
+  ).toEqual(`Sum(54)`);
+});
 
-console.log(
-  "foldMap statsWithNull",
-  statsWithNull
-    .foldMap(x => fromNullable(x.views).map(Sum), Right(Sum(0)))
-    .fold(e => `Left(${e})`, s => `Sum(${s.x})`)
-);
+test("that foldMapping the list with immutable-ext foldMap in a collection with null values will return the correct Sum", () => {
+  expect(
+    statsWithNull
+      .foldMap(x => fromNullable(x.views).map(Sum), Right(Sum(0)))
+      .fold(e => `Left(${e})`, s => `Sum(${s.x})`)
+  ).toEqual(`Sum(50)`);
+});
 
-// foldMap will build the combination:
-console.log(
-  Right(Sum(0))
-    .concat(Right(Sum(40)))
-    .concat(Right(Sum(10)))
-    .concat(Right(Sum(4)))
-    .fold(e => `Left(${e})`, s => `Sum(${s.x})`)
-);
+test("that sequentially concating yields the same result", () => {
+  // foldMap will build the combination:
+  expect(
+    Right(Sum(0))
+      .concat(Right(Sum(40)))
+      .concat(Right(Sum(10)))
+      .concat(Right(Sum(4)))
+      .fold(e => `Left(${e})`, s => `Sum(${s.x})`)
+  ).toEqual(`Sum(54)`);
+});
+
+test("that building the combinations with a Left(null) also yields Sum(50)", () => {
+  expect(
+    Right(Sum(0))
+      .concat(Right(Sum(40)))
+      .concat(Right(Sum(10)))
+      .concat(Left(null))
+      .fold(e => `Left(${e})`, s => `Sum(${s.x})`)
+  ).toEqual(`Sum(50)`);
+});
 
 const foldMap = (mapFn, id, list) =>
   list.reduce((acc, val) => {
@@ -128,28 +155,26 @@ const foldMap = (mapFn, id, list) =>
     return acc.concat(mapFn(val));
   }, id);
 
-console.log(
-  foldMap(x => fromNullable(x.views).map(Sum), Right(Sum(0)), [
-    { page: "Home", views: 40 },
-    { page: "About", views: 10 },
-    { page: "Blog", views: 4 }
-  ]).fold(e => `Left(${e})`, s => `Sum(${s.x})`)
-);
+test("that the custom foldMap with arrays work", () => {
+  // foldMap will build the combination:
+  expect(
+    foldMap(x => fromNullable(x.views).map(Sum), Right(Sum(0)), [
+      { page: "Home", views: 40 },
+      { page: "About", views: 10 },
+      { page: "Blog", views: 4 }
+    ]).fold(e => `Left(${e})`, s => `Sum(${s.x})`)
+  ).toEqual(`Sum(54)`);
+});
 
-console.log(
-  foldMap(x => fromNullable(x.views).map(Sum), Right(Sum(0)), [
-    { page: "Home", views: 40 },
-    { page: "About", views: null }
-  ]).fold(e => `Left(${e})`, s => `Sum(${s.x})`)
-);
-
-console.log(
-  Right(Sum(0))
-    .concat(Right(Sum(40)))
-    .concat(Right(Sum(10)))
-    .concat(Left(null))
-    .fold(e => `Left(${e})`, s => `Sum(${s.x})`)
-);
+test("that the custom foldMap with works with null values as well", () => {
+  // foldMap will build the combination:
+  expect(
+    foldMap(x => fromNullable(x.views).map(Sum), Right(Sum(0)), [
+      { page: "Home", views: 40 },
+      { page: "About", views: null }
+    ]).fold(e => `Left(${e})`, s => `Sum(${s.x})`)
+  ).toEqual(`Sum(40)`);
+});
 
 const First = either => ({
   fold: f => f(either),
@@ -157,18 +182,22 @@ const First = either => ({
 });
 First.empty = () => First(Left());
 
-console.log(
-  `First(${First("this is the first")
-    .concat(First.empty())
-    .fold(x => x)})`
-);
+test("that First is now a monoid", () => {
+  expect(
+    First("this is the first")
+      .concat(First.empty())
+      .fold(x => x)
+  ).toEqual(`this is the first`);
+});
 
-const find = (xs, f) =>
+const findFirst = (xs, f) =>
   List(xs)
     .foldMap(x => First(f(x) ? Right(x) : Left()), First.empty())
     .fold(id);
 
-console.log(find([3, 4, 5, 6, 7], x => x > 4).inspect());
+test("that findFirst is working", () => {
+  expect(findFirst([3, 4, 5, 6, 7], x => x > 4).inspect()).toEqual(`Right(5)`);
+});
 
 const Fn = f => ({
   fold: f,
@@ -191,7 +220,11 @@ const both = Fn(
   )
 );
 
-console.log(["gym", "bird", "lilac"].filter(x => both.fold(x).x));
+test("that both works", () => {
+  expect(["gym", "bird", "lilac"].filter(x => both.fold(x).x)).toEqual([
+    "lilac"
+  ]);
+});
 
 const Pair = (x, y) => ({
   x,
@@ -199,8 +232,10 @@ const Pair = (x, y) => ({
   concat: ({ x: x1, y: y1 }) => Pair(x.concat(x1), y.concat(y1))
 });
 
-const combinedPair = Pair(First("Hello"), Sum(2)).concat(
-  Pair(First("second"), Sum(5))
-);
-
-console.log(`Pair(${combinedPair.x.fold(id)},${combinedPair.y.fold(id)})`);
+test("that both works", () => {
+  const combinedPair = Pair(First("Hello"), Sum(2)).concat(
+    Pair(First("second"), Sum(5))
+  );
+  expect(combinedPair.x.fold(id)).toEqual("Hello");
+  expect(combinedPair.y.fold(id)).toEqual(7);
+});
