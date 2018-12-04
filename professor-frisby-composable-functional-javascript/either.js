@@ -1,4 +1,5 @@
 const Right = x => ({
+  ap: F => F.map(x),
   chain: f => f(x),
   map: f => Right(f(x)),
   fold: (f, g) => g(x),
@@ -6,6 +7,7 @@ const Right = x => ({
 });
 
 const Left = x => ({
+  ap: F => Left(x), 
   chain: f => Left(x),
   map: f => Left(x),
   fold: (f, g) => f(x),
@@ -22,6 +24,10 @@ const tryCatch = f => {
   }
 };
 
+const Either = {
+  of: x => Right(x)
+};
+
 module.exports = {
-  Right, Left, fromNullable, tryCatch
+  Either, Right, Left, fromNullable, tryCatch
 }
