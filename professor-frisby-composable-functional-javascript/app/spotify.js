@@ -7,8 +7,7 @@ const httpGet = url =>
     axios
       .get(url, {
         headers: {
-          Authorization:
-            "Bearer <PUT TOKEN HERE>"
+          Authorization: "Bearer <PUT TOKEN HERE>"
         }
       })
       .then(resolve)
@@ -19,7 +18,6 @@ const first = xs => Either.fromNullable(xs[0]);
 
 const eitherToTask = e => e.fold(Task.rejected, Task.of);
 
-// Task(Either(artist))
 const findArtist = name =>
   httpGet(`https://api.spotify.com/v1/search?q=${name}&type=artist`)
     .map(results => results.artists.items)
