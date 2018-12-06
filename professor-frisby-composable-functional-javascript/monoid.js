@@ -81,6 +81,8 @@ const Fn = f => ({
 const Pair = (x, y) => ({
   x,
   y,
+  toList: () => [x, y],
+  bimap: (f, g) => Pair(f(x), g(y)),
   concat: ({ x: x1, y: y1 }) => Pair(x.concat(x1), y.concat(y1))
 });
 

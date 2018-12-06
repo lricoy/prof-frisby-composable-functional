@@ -1,4 +1,6 @@
 const Right = x => ({
+  _name: `Right(${x})`,
+  _value: x,
   ap: F => F.map(x),
   chain: f => f(x),
   map: f => Right(f(x)),
@@ -7,13 +9,14 @@ const Right = x => ({
 });
 
 const Left = x => ({
-  ap: F => Left(x), 
+  _name: `Left(${x})`,
+  _value: x,
+  ap: F => Left(x),
   chain: f => Left(x),
   map: f => Left(x),
   fold: (f, g) => f(x),
   inspect: () => `Left(${x})`
 });
-
 const fromNullable = x => (x != null ? Right(x) : Left(null));
 
 const tryCatch = f => {
@@ -29,5 +32,9 @@ const Either = {
 };
 
 module.exports = {
-  Either, Right, Left, fromNullable, tryCatch
-}
+  Either,
+  Right,
+  Left,
+  fromNullable,
+  tryCatch
+};
